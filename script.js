@@ -83,6 +83,7 @@ yesBtn.addEventListener('click', () => {
     setTimeout(() => {
         questionScreen.classList.add('hidden');
         successScreen.classList.remove('hidden');
+        noBtn.style.display = 'none'; // Hide the No button since it's in body
     }, 300);
 });
 
@@ -126,22 +127,37 @@ function createConfetti() {
 // Initialize floating hearts
 createFloatingHearts();
 
-// Make no button run away anywhere on screen on hover
+// Make no button run away within the container div only on hover
 noBtn.addEventListener('mouseenter', () => {
-    // Calculate random position anywhere on the screen
+    const container = document.getElementById('questionScreen');
+    const containerRect = container.getBoundingClientRect();
+
+    // Move button to body if not already there to escape transform/overflow clipping
+    if (noBtn.parentElement !== document.body) {
+        document.body.appendChild(noBtn);
+        // Ensure button retains its size/style if affected by parent
+    }
+
     const btnRect = noBtn.getBoundingClientRect();
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
 
-    // Random position with padding from edges
-    const padding = 50;
-    const randomX = padding + Math.random() * (screenWidth - btnRect.width - padding * 2);
-    const randomY = padding + Math.random() * (screenHeight - btnRect.height - padding * 2);
+    // Random position constrained within the container's screen bounds
+    const padding = 20; // Increased padding to be safe
+    const minX = containerRect.left + padding;
+    const maxX = containerRect.right - btnRect.width - padding;
+    const minY = containerRect.top + padding;
+    const maxY = containerRect.bottom - btnRect.height - padding;
 
-    // Make button fixed position and teleport it
+    // Ensure valid ranges (in case container is too small)
+    const validMaxX = Math.max(minX, maxX);
+    const validMaxY = Math.max(minY, maxY);
+
+    const randomX = minX + Math.random() * (validMaxX - minX);
+    const randomY = minY + Math.random() * (validMaxY - minY);
+
+    // Use fixed position so it works regardless of DOM nesting
     noBtn.style.position = 'fixed';
     noBtn.style.left = randomX + 'px';
     noBtn.style.top = randomY + 'px';
     noBtn.style.zIndex = '9999';
-    noBtn.style.transition = 'none'; // Instant teleport, no animation
+    noBtn.style.transition = 'all 0.1s ease'; // Smooth but fast transition
 });
